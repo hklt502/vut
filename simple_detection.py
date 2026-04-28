@@ -1,24 +1,42 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import cv2
+import os
 import numpy as np
+import sys
 
-def detect_colored_circles(camera_id=0):
+def _resolve_video_source(source=None):
+    if source is not None:
+        if isinstance(source, str) and source.isdigit():
+            return int(source)
+        return source
+
+    default_video = os.path.join(os.path.dirname(__file__), "IMG_1404.MOV")
+    if os.path.exists(default_video):
+        return default_video
+
+    return 0
+
+
+def detect_colored_circles(source=None):
     """
     Nhận diện vòng tròn rỗng màu đỏ, vàng, xanh dương
     Dùng Color Filter + kiểm tra hình dạng vành tròn (rỗng ruột)
     In ra hướng cần di chuyển để tâm trùng
     
     Args:
-        camera_id: ID camera (mặc định 0)
+        source: ID camera hoặc đường dẫn video
     """
 
-    # Mở camera
-    cap = cv2.VideoCapture(camera_id)
+    source = _resolve_video_source(source)
+
+    # Mở camera hoặc video file
+    cap = cv2.VideoCapture(source)
     if not cap.isOpened():
-        print("Không thể mở camera!")
+        print(f"Không thể mở nguồn video: {source}")
         return
     
+    print(f"Đang mở nguồn: {source}")
     print("Bắt đầu phát hiện vòng tròn rỗng... Nhấn 'q' để thoát")
     
     while True:
@@ -243,6 +261,11 @@ def detect_colored_circles(camera_id=0):
 
 if __name__ == "__main__":
     print("=== CIRCLE DETECTION - PHÁT HIỆN VÒNG TRÒN ===\n")
-    print("Chế độ: Camera thời gian thực")
-    detect_colored_circles()
+    if len(sys.argv) > 1:
+        print(f"Chế độ: Video/Camera từ đối số -> {sys.argv[1]}")
+        detect_colored_circles(sys.argv[1])
+    else:
+        default_source = _resolve_video_source()
+        print(f"Chế độ: Nguồn mặc định -> {default_source}")
+        detect_colored_circles(default_source)
 
